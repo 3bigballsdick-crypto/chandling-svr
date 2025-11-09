@@ -1,111 +1,257 @@
 #include "chandlingsvr.h"
 
-#include "sampgdk/sampgdk.h"
-#include "samp-plugin-sdk/plugincommon.h"
-#include "samp-plugin-sdk/amx/amx.h"
-#include "Hooks.h"
+#include "Hooks.hpp"
 #include "CPlayer.h"
-#include "Natives.h"
+#include "Natives.hpp"
 #include "HandlingManager.h"
 #include "HandlingDefault.h"
 
-extern void *pAMXFunctions;
-void **ppPluginData = nullptr;
+using namespace NativeHook;
 
-using sampgdk::logprintf;
-
-CCRakServer *pRakServer = nullptr;
-
-bool bInitialized = false;
-bool bGotRakSvr = false;
-
-PLUGIN_EXPORT bool PLUGIN_CALL OnIncomingConnection(int playerid, const char* ip_addr, int port)
+StringView CHandlingCompo::componentName() const
 {
-	if (IS_VALID_PLAYERID(playerid))
-		gPlayers[playerid].Reset();
+	return "CHandling";
+}
+
+SemanticVersion CHandlingCompo::componentVersion() const
+{
+	return SemanticVersion(CHANDLING_VERSION_MAJOR, CHANDLING_VERSION_MINOR, CHANDLING_VERSION_PATCH, 0);
+}
+
+void CHandlingCompo::onLoad(ICore *c)
+{
+	core_ = c;
+
+	getCore() = c;
+	get() = this;
+
+	core_->getPlayers().getPlayerConnectDispatcher().addEventHandler(this);
+}
+
+IVehicle* CHandlingCompo::GetVehicleByID(int vehicleid)
+{
+	if (!IS_VALID_VEHICLEID(vehicleid))
+		return nullptr;
+
+	for (auto it = vehicles_->begin(); it != vehicles_->end(); ++it)
+	{
+		IVehicle &vehicle = *it;
+		if (vehicle.getID() == vehicleid)
+		{
+			return &vehicle;
+		}
+	}
+	return nullptr;
+}
+
+bool CHandlingCompo::IsValidVehicle(int vehicleid)
+{
+	if (!IS_VALID_VEHICLEID(vehicleid))
+		return false;
+
+	for (auto it = vehicles_->begin(); it != vehicles_->end(); ++it)
+	{
+		IVehicle &vehicle = *it;
+		if (vehicle.getID() == vehicleid)
+		{
+			return true;
+		}
+	}
 	return false;
 }
 
-PLUGIN_EXPORT bool PLUGIN_CALL OnPlayerConnect(int playerid) {
-	//logprintf("[chandling] OnPlayerConnect");
-	if (bInitialized)
-		HandlingMgr::OnPlayerConnect(playerid);
-	return true;
-}
-
-PLUGIN_EXPORT bool PLUGIN_CALL OnVehicleStreamIn(int vehicleid, int forplayerid)
+IPlayer* CHandlingCompo::GetPlayerByID(int playerid)
 {
-	//logprintf("[chandling] OnVehicleStreamIn(%d,%d)", vehicleid, forplayerid);
+	if (!IS_VALID_PLAYERID(playerid))
+		return nullptr;
 
-	if (bInitialized)
+	for (auto it = players_->begin(); it != players_->end(); ++it)
 	{
-		// Send handling modifications for this vehicle
-		HandlingMgr::OnVehicleStreamIn(vehicleid, forplayerid);
-	}
-	return true;
-}
-
-
-
-PLUGIN_EXPORT unsigned int PLUGIN_CALL Supports() {
-	return sampgdk::Supports() | SUPPORTS_PROCESS_TICK | SUPPORTS_AMX_NATIVES;
-}
-
-
-PLUGIN_EXPORT bool PLUGIN_CALL Load(void **ppData) {
-
-	ppPluginData = ppData;
-	pAMXFunctions = ppData[PLUGIN_DATA_AMX_EXPORTS];
-
-	bool ret = sampgdk::Load(ppData);
-
-	Hooks::PreHooking();
-	Hooks::InstallNativeRedirects(pAMXFunctions);
-
-	logprintf("[###] CHandlingSvr " CHANDLING_VERSION " by .silent loaded [###]");
-	return ret;
-}
-
-PLUGIN_EXPORT void PLUGIN_CALL Unload() {
-	Hooks::UninstallHooks();
-	sampgdk::Unload();
-}
-
-PLUGIN_EXPORT void PLUGIN_CALL ProcessTick() {
-	if (bInitialized)
-		HandlingMgr::ProcessTick();
-	sampgdk::ProcessTick();
-}
-
-
-PLUGIN_EXPORT int PLUGIN_CALL AmxLoad(AMX *amx)
-{
-	if (!bInitialized)
-	{
-		// Get pRakServer, taken from SKY
-		int(*pfn_GetRakServer)(void) = (int(*)(void))ppPluginData[PLUGIN_DATA_RAKSERVER];
-		pRakServer = (CCRakServer*)pfn_GetRakServer();
-
-		if (!pRakServer)
-			logprintf("[chandling] [ERROR] pRakServer is null, plugin couldn't be initialized");
-		else
+		IPlayer &player = *it;
+		if (player.getID() == playerid)
 		{
-			bInitialized = Hooks::InstallHooks();
-
-			if (!bInitialized)
-				logprintf("[chandling] ERROR: Plugin couldn't be initialized");
-			else
-			{
-				HandlingDefault::Initialize();
-				HandlingMgr::InitializeModelHandlings();
-			}
+			return &player;
 		}
 	}
-
-	return amx_Register(amx, Natives::PluginNatives, -1);
+	return nullptr;
 }
 
-PLUGIN_EXPORT int PLUGIN_CALL AmxUnload(AMX* amx)
+	{
+		IVehicle &vehicle = *it;
+		if (vehicle.getID() == vehicleid)
+		{
+			return &vehicle;
+		}
+	}
+	return nullptr;
+}
+
+void CHandlingCompo::onInit(IComponentList *components)
 {
-	return AMX_ERR_NONE;
+	pawn_component_ = components->queryComponent<IPawnComponent>();
+	if (!pawn_component_)
+	{
+		StringView name = componentName();
+
+		core_->logLn(LogLevel::Error,
+					 "Error loading component %.*s: Pawn component not loaded",
+					 name.length(), name.data());
+
+		return;
+	}
+
+	core_->getEventDispatcher().addEventHandler(this);
+	if (pawn_component_)
+	{
+		setAmxFunctions(getAmxFunctions());
+		setAmxLookups(components);
+		pawn_component_->getEventDispatcher().addEventHandler(this);
+	}
+
+	vehicles_ = components->queryComponent<IVehiclesComponent>();
+	if (!vehicles_)
+	{
+		StringView name = componentName();
+
+		core_->logLn(LogLevel::Error,
+					 "Error loading component %.*s: Vehicles component not loaded",
+					 name.length(), name.data());
+
+		return;
+	}
+	if (vehicles_)
+	{
+		vehicles_->getPoolEventDispatcher().addEventHandler(this);
+	}
+
+	for (auto network : core_->getNetworks())
+	{
+		network->getInEventDispatcher().addEventHandler(this);
+		network->getOutEventDispatcher().addEventHandler(this);
+	}
+
+	AMX_EXPORTS_DTA = pawn_component_->getAmxFunctions().data();
+}
+
+void CHandlingCompo::onAmxLoad(IPawnScript &script)
+{
+	HandlingDefault::Initialize();
+	HandlingMgr::InitializeModelHandlings();
+	pawn_component_::AmxLoad(script.GetAMX());
+	NativeHookManager::Instance().LoadAMX(script.GetAMX());
+	RegisterNativeHooks();
+
+	core_->logLn(LogLevel::Message, "");
+	core_->logLn(LogLevel::Message, " =======================================================================");
+	core_->logLn(LogLevel::Message, "  CHandlingSvr %.*d.%.*d.%.*d%.*s by .silent (adapted by Zorono) loaded!", CHANDLING_VERSION_MAJOR, CHANDLING_VERSION_MINOR, CHANDLING_VERSION_PATCH, (CHANDLING_PHASE_DEV ? "-dev" : ""));
+	core_->logLn(LogLevel::Message, " =======================================================================");
+	core_->logLn(LogLevel::Message, "");
+};
+
+void CHandlingCompo::onAmxUnload(IPawnScript &script)
+{
+	pawn_component_::AmxUnload();
+	NativeHookManager::Instance().UnloadAMX(script.GetAMX());
+
+	core_->logLn(LogLevel::Message, "");
+	core_->logLn(LogLevel::Message, " =========================================================================");
+	core_->logLn(LogLevel::Message, "  CHandlingSvr %.*d.%.*d.%.*d%.*s by .silent (adapted by Zorono) unloaded!", CHANDLING_VERSION_MAJOR, CHANDLING_VERSION_MINOR, CHANDLING_VERSION_PATCH, (CHANDLING_PHASE_DEV ? "-dev" : ""));
+	core_->logLn(LogLevel::Message, " =========================================================================");
+	core_->logLn(LogLevel::Message, "");
+};
+
+void CHandlingCompo::onTick(Microseconds elapsed, TimePoint now)
+{
+	HandlingMgr::ProcessTick();
+}
+
+bool CHandlingCompo::onReceivePacket(IPlayer &peer, int id, NetworkBitStream &bs)
+{
+	if (id == (uint8_t)ID_CHANDLING)
+	{
+		core_->logLn(LogLevel::Debug, "[CHandling] Received custom packet ID %.*d from player %.*d (size=%.*d)\n", id, peer.getID(), bs.GetNumberOfBytesUsed());
+		if (bs.GetNumberOfUnreadBytes() > 1)
+		{
+			uint8_t action;
+			bs.Read(action);
+
+			Actions::Process((CHandlingAction)action, bs, peer);
+		}
+	}
+	return true;
+}
+
+void CHandlingCompo::onFree(IComponent *component)
+{
+	if (component == pawn_component_)
+	{
+		if (pawn_component_)
+		{
+			pawn_component_->getEventDispatcher().removeEventHandler(this);
+		}
+
+		pawn_component_ = nullptr;
+	}
+	else if (component == vehicles_)
+	{
+		if (vehicles_)
+		{
+			vehicles_->getEventDispatcher().removeEventHandler(this);
+		}
+
+		vehicles_ = nullptr;
+	}
+	else if (component == this)
+	{
+		core_->getEventDispatcher().removeEventHandler(this);
+	}
+}
+
+void CHandlingCompo::reset() {}
+
+void CHandlingCompo::free()
+{
+	delete this;
+}
+
+ICore *&CHandlingCompo::getCore()
+{
+	static ICore *core{};
+
+	return core;
+}
+
+CHandlingCompo *&CHandlingCompo::get()
+{
+	static CHandlingCompo *component{};
+
+	return component;
+}
+
+COMPONENT_ENTRY_POINT()
+{
+	return new CHandlingCompo();
+}
+
+bool onIncomingConnection(IPlayer &player, const char *ip_addr, int port)
+{
+	int playerid = player.getID();
+	gPlayers[playerid].Reset();
+	return false;
+}
+
+bool onPlayerConnect(IPlayer &player)
+{
+	core_->logLn(LogLevel::Debug, "[CHandling] OnPlayerConnect");
+	HandlingMgr::OnPlayerConnect(player);
+	return true;
+}
+
+bool onVehicleStreamIn(IVehicle &vehicle, IPlayer &forplayer)
+{
+	core_->logLn(LogLevel::Debug, "[CHandling] OnVehicleStreamIn(%d,%d)", vehicle.getID(), forplayer.getID());
+
+	// Send handling modifications for this vehicle
+	HandlingMgr::OnVehicleStreamIn(vehicle, forplayer);
+	return true;
 }

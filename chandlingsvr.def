@@ -7,4 +7,3 @@ EXPORTS
 	ProcessTick
 	OnPlayerConnect
 	OnVehicleStreamIn
-	OnIncomingConnection

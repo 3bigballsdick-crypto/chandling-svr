@@ -1,6 +1,8 @@
 #pragma once
 
-#include "raknet/BitStream.h"
+#include "../lib/omp-raknet/Include/raknet/BitStream.h"
+#include "../lib/omp-sdk/include/sdk.hpp"
+#include "../lib/omp-sdk/include/Server/Components/Pawn/pawn.hpp"
 #include "PacketEnum.h"
 #include <cstdint>
 
@@ -29,5 +31,5 @@ struct CHandlingActionPacket
 
 namespace Actions
 {
-	bool Process(CHandlingAction id, RakNet::BitStream *bs, int playerid);
+	bool Process(CHandlingAction id, RakNet::BitStream *bs, IPlayer &player);
 }
