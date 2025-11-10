@@ -239,11 +239,10 @@ void CHandlingCompo::onPlayerDisconnect(IPlayer& player, PeerDisconnectReason re
 	gPlayers[playerid].Reset();
 }
 
-bool CHandlingCompo::onVehicleStreamIn(IVehicle &vehicle, IPlayer &forplayer)
+void CHandlingCompo::onVehicleStreamIn(IVehicle& vehicle, IPlayer& player)
 {
-	core_->logLn(LogLevel::Debug, "[CHandling] OnVehicleStreamIn(%d,%d)", vehicle.getID(), forplayer.getID());
+	core_->logLn(LogLevel::Debug, "[CHandling] OnVehicleStreamIn(%d,%d)", vehicle.getID(), player.getID());
 
 	// Send handling modifications for this vehicle
-	HandlingMgr::OnVehicleStreamIn(vehicle, forplayer);
-	return true;
+	HandlingMgr::OnVehicleStreamIn(vehicle, player);
 }

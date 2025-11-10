@@ -45,7 +45,8 @@ class CHandlingCompo final : public IComponent,
 							 public NetworkInEventHandler,
 							 public NetworkOutEventHandler,
 							 public PoolEventHandler<IVehicle>,
-							 public PlayerConnectEventHandler
+							 public PlayerConnectEventHandler,
+							 public VehicleEventHandler
 {
 public:
 	PROVIDE_UID(0xFBE076EB9EA67E4C);
@@ -78,7 +79,7 @@ public:
 
 	void onPlayerDisconnect(IPlayer& player, PeerDisconnectReason reason) override;
 
-	void onVehicleStreamIn(IVehicle &vehicle, IPlayer &forplayer) override;
+	void onVehicleStreamIn(IVehicle& vehicle, IPlayer& player) override;
 
 	static ICore *&getCore();
 
