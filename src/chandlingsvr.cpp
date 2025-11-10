@@ -76,16 +76,6 @@ IPlayer* CHandlingCompo::GetPlayerByID(int playerid)
 	return nullptr;
 }
 
-	{
-		IVehicle &vehicle = *it;
-		if (vehicle.getID() == vehicleid)
-		{
-			return &vehicle;
-		}
-	}
-	return nullptr;
-}
-
 void CHandlingCompo::onInit(IComponentList *components)
 {
 	pawn_component_ = components->queryComponent<IPawnComponent>();
