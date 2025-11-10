@@ -56,7 +56,7 @@ namespace HandlingMgr
 	/*
 	 *  INTERNAL FUNCTIONS
 	 */
-	void __WriteHandlingEntryToBitStream(RakNet::BitStream *bs, const struct stHandlingEntry entry)
+	void __WriteHandlingEntryToBitStream(NetworkBitStream *bs, const struct stHandlingEntry entry)
 	{
 		bs->Write((uint8_t)entry.handlingModMap.size());
 

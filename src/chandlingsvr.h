@@ -1,12 +1,12 @@
-#include "../lib/omp-raknet/Include/raknet/BitStream.h"
-#include "../lib/omp-raknet/Include/raknet/StringCompressor.h"
-#include "../lib/omp-raknet/Include/raknet/PluginInterface.h"
-#include "../lib/omp-raknet/Include/raknet/PacketEnumerations.h"
+#ifndef CHANDLINGSVR_H
+#define CHANDLINGSVR_H
 
 #include "../lib/omp-sdk/include/sdk.hpp"
 #include "../lib/omp-sdk/include/Server/Components/Pawn/pawn.hpp"
 #include "../lib/omp-sdk/include/Impl/network_impl.hpp"
 #include "../lib/omp-sdk/include/Server/Components/Vehicles/vehicles.hpp"
+
+#include "../lib/RakNet/bitstream.hpp"
 
 #define CHANDLING_PHASE_DEV true
 #define CHANDLING_VERSION_MAJOR 1
@@ -36,12 +36,16 @@
 #define VEHICLE_MODEL_INDEX(modelid) \
 	(modelid - 400)
 
+#define IS_VALID_PLAYERID(playerid) \
+	(playerid >= 1 && playerid <= MAX_PLAYERS)
+
 class CHandlingCompo final : public IComponent,
 							 public PawnEventHandler,
 							 public CoreEventHandler,
 							 public NetworkInEventHandler,
 							 public NetworkOutEventHandler,
-							 public PoolEventHandler<IVehicle>
+							 public PoolEventHandler<IVehicle>,
+							 public PlayerConnectEventHandler
 {
 public:
 	PROVIDE_UID(0xFBE076EB9EA67E4C);
@@ -68,6 +72,14 @@ public:
 
 	void free() override;
 
+	void onIncomingConnection(IPlayer& player, StringView ipAddress, unsigned short port) override;
+
+	void onPlayerConnect(IPlayer& player) override;
+
+	void onPlayerDisconnect(IPlayer& player, PeerDisconnectReason reason) override;
+
+	void onVehicleStreamIn(IVehicle &vehicle, IPlayer &forplayer) override;
+
 	static ICore *&getCore();
 
 	static CHandlingCompo *&get();
@@ -84,3 +96,4 @@ private:
 public:
 	void **AMX_EXPORTS_DTA = nullptr;
 };
+#endif

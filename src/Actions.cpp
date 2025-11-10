@@ -3,14 +3,14 @@
 #include "HandlingManager.h"
 #include "chandlingsvr.h"
 
-bool Actions::Process(CHandlingAction id, RakNet::BitStream *bs, IPlayer &player)
+bool Actions::Process(CHandlingAction id, NetworkBitStream &bs, IPlayer &player)
 {
 	switch (id)
 	{
 	case ACTION_INIT:
 	{
 		uint32_t compat_ver;
-		bs->Read(compat_ver);
+		bs.Read(compat_ver);
 
 		CHandlingActionPacket pkt(ACTION_INIT_RESPONSE);
 		pkt.data.Write((uint32_t)CHANDLING_COMPAT_VERSION);
