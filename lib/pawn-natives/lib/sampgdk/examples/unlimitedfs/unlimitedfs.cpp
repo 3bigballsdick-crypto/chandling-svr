@@ -668,7 +668,7 @@ PLUGIN_EXPORT int PLUGIN_CALL AmxLoad(AMX *amx) {
 	logprintf("--------------");
 
 	std::list<std::string> files;
-	GetFilesInDirectory("plugins", "*."PLUGIN_EXT, std::back_inserter(files));
+	GetFilesInDirectory("plugins", std::string("*.") + PLUGIN_EXT, std::back_inserter(files));
 
 	for (std::list<std::string>::iterator iterator = files.begin();
 			iterator != files.end(); ++iterator) {
@@ -711,7 +711,7 @@ PLUGIN_EXPORT int PLUGIN_CALL AmxLoad(AMX *amx) {
 
 	// Load ALL scripts from "filterscripts/"
 	files.clear();
-	GetFilesInDirectory("filterscripts", "*.amx", std::back_inserter(files));
+	GetFilesInDirectory("plugins", std::string("*.amx"), std::back_inserter(files));
 	for (std::list<std::string>::iterator iterator = files.begin();
 			iterator != files.end(); ++iterator) {
 		std::string fs_name = GetBaseName(*iterator);

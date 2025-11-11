@@ -1,12 +1,12 @@
 #ifndef CHANDLINGSVR_H
 #define CHANDLINGSVR_H
 
-#include "../lib/omp-sdk/include/sdk.hpp"
-#include "../lib/omp-sdk/include/Server/Components/Pawn/pawn.hpp"
-#include "../lib/omp-sdk/include/Impl/network_impl.hpp"
-#include "../lib/omp-sdk/include/Server/Components/Vehicles/vehicles.hpp"
+#include <sdk.hpp>
+#include <Server/Components/Pawn/pawn.hpp>
+#include <Impl/network_impl.hpp>
+#include <Server/Components/Vehicles/vehicles.hpp>
 
-#include "../lib/RakNet/bitstream.hpp"
+#include <RakNet/bitstream.hpp>
 
 #define CHANDLING_PHASE_DEV true
 #define CHANDLING_VERSION_MAJOR 1

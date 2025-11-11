@@ -11,7 +11,7 @@
 #include <cstring>
 
 #define CHECK_TYPE(attribute, type)                                                                                  \
-	if (GetHandlingAttribType(attrib) != type)                                                                       \
+	if (GetHandlingAttributeType(attrib) != type)                                                                       \
 	{                                                                                                                \
 		auto core_ = CHandlingCompo::getCore();                                                                      \
 		if (!core_)                                                                                                  \
@@ -191,7 +191,7 @@ namespace HandlingMgr
 
 	void OnCreateVehicle(int vehicleid)
 	{
-		ResetVehicleHandling(vehicleid);
+		ResetVehicleHandling(*CHandlingCompo::GetVehicleByID(vehicleid));
 	}
 
 	void OnPlayerConnect(IPlayer &player)
@@ -303,7 +303,7 @@ namespace HandlingMgr
 		if (!CHandlingCompo::IsValidVehicle(vehicleid) || !CanSetHandlingAttrib(attrib)) // no validation checking for unsigned integers
 			return false;
 
-		CHandlingAttribType type = GetHandlingAttribType(attrib);
+		CHandlingAttribType type = GetHandlingAttributeType(attrib);
 		if (!(type == TYPE_UINT || type == TYPE_FLAG))
 			return false;
 
@@ -348,7 +348,7 @@ namespace HandlingMgr
 	{
 		if (!IS_VALID_VEHICLE_MODEL(modelid) || !CanSetHandlingAttrib(attrib))
 			return false;
-		CHandlingAttribType type = GetHandlingAttribType(attrib);
+		CHandlingAttribType type = GetHandlingAttributeType(attrib);
 		if (!(type == TYPE_UINT || type == TYPE_FLAG))
 			return false;
 
@@ -390,7 +390,7 @@ namespace HandlingMgr
 	{
 		if (!CHandlingCompo::IsValidVehicle(vehicleid))
 			return false;
-		CHandlingAttribType type = GetHandlingAttribType(attrib);
+		CHandlingAttribType type = GetHandlingAttributeType(attrib);
 
 		if (!(type == TYPE_UINT || type == TYPE_FLAG))
 			return false;
@@ -424,7 +424,7 @@ namespace HandlingMgr
 		if (!IS_VALID_VEHICLE_MODEL(modelid))
 			return false;
 
-		CHandlingAttribType type = GetHandlingAttribType(attrib);
+		CHandlingAttribType type = GetHandlingAttributeType(attrib);
 		if (!(type == TYPE_UINT || type == TYPE_FLAG))
 			return false;
 
@@ -461,7 +461,7 @@ namespace HandlingMgr
 		if (!IS_VALID_VEHICLE_MODEL(modelid))
 			return false;
 
-		CHandlingAttribType type = GetHandlingAttribType(attrib);
+		CHandlingAttribType type = GetHandlingAttributeType(attrib);
 		if (!(type == TYPE_UINT || type == TYPE_FLAG))
 			return false;
 

@@ -16,7 +16,7 @@ namespace HandlingMgr
 	void OnVehicleStreamIn(IVehicle &vehicle, IPlayer &player); // call from OnVehicleStreamIn so handling modifications for this individual vehicle are sent to the player
 
 	bool ResetModelHandling(int modelid);								 // resets model handling to it's default one, NOTE: this resets any handling modifications for every vehicle of that model
-	void ResetVehicleHandling(int vehicleid, bool sendToPlayers = true); // resets vehicle handling to it's model handling (and clears the modifications)
+	void ResetVehicleHandling(IVehicle &vehicle, bool sendToPlayers = true); // resets vehicle handling to it's model handling (and clears the modifications)
 	bool SetVehicleHandling(uint16_t vehicleid, CHandlingAttrib attrib, float value);
 	bool SetVehicleHandling(uint16_t vehicleid, CHandlingAttrib attrib, unsigned int value);
 	bool SetVehicleHandling(uint16_t vehicleid, CHandlingAttrib attrib, uint8_t value);

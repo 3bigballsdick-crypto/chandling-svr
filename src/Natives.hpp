@@ -56,17 +56,18 @@ void RegisterNativeHooks()
 }
 
 // Vehicle handling related funcs
-SCRIPT_API(GetHandlingAttribType, CHandlingAttribType(CHandlingAttrib attr))
+SCRIPT_API(GetHandlingAttributeType, CHandlingAttributeType(CHandlingAttrib attr))
 {
-	return GetHandlingAttribType(attr);
+	return GetHandlingAttributeType(attr);
 }
 
 SCRIPT_API(IsPlayerUsingCHandling, bool(IPlayer &player))
 {
-	int playerid = player.getID();
-	if (IsPlayerConnected(playerid))
+	if (&player != nullptr)
+	{
+		int playerid = player.getID();
 		return gPlayers[playerid].hasCHandling();
-
+	}
 	return false;
 }
 
@@ -75,9 +76,10 @@ SCRIPT_API(ResetModelHandling, bool(int modelid))
 	return HandlingMgr::ResetModelHandling(modelid);
 }
 
-SCRIPT_API(ResetVehicleHandling, bool(int vehicleid))
+SCRIPT_API(ResetVehicleHandling, bool(IVehicle &vehicle))
 {
-	return HandlingMgr::ResetVehicleHandling(vehicleid);
+	HandlingMgr::ResetVehicleHandling(vehicle);
+	return true;
 }
 
 SCRIPT_API(SetVehicleHandlingFloat, bool(int vehicleid, CHandlingAttrib attrib, float value))
@@ -87,7 +89,7 @@ SCRIPT_API(SetVehicleHandlingFloat, bool(int vehicleid, CHandlingAttrib attrib, 
 
 SCRIPT_API(SetVehicleHandlingInt, bool(int vehicleid, CHandlingAttrib attrib, int value))
 {
-	if (GetHandlingAttribType(attrib) == TYPE_BYTE)
+	if (GetHandlingAttributeType(attrib) == TYPE_BYTE)
 		return HandlingMgr::SetVehicleHandling(vehicleid, attrib, (uint8_t)value);
 
 	return HandlingMgr::SetVehicleHandling(vehicleid, attrib, (unsigned int)value);
@@ -100,7 +102,7 @@ SCRIPT_API(SetModelHandlingFloat, bool(int modelid, CHandlingAttrib attrib, floa
 
 SCRIPT_API(SetModelHandlingInt, bool(int modelid, CHandlingAttrib attrib, int value))
 {
-	if (GetHandlingAttribType(attrib) == TYPE_BYTE)
+	if (GetHandlingAttributeType(attrib) == TYPE_BYTE)
 		return HandlingMgr::SetModelHandling((uint16_t)modelid, attrib, (uint8_t)value);
 
 	return HandlingMgr::SetModelHandling((uint16_t)modelid, attrib, (unsigned int)value);
@@ -108,110 +110,53 @@ SCRIPT_API(SetModelHandlingInt, bool(int modelid, CHandlingAttrib attrib, int va
 
 SCRIPT_API(GetVehicleHandlingFloat, bool(int vehicleid, CHandlingAttrib attrib, float &value))
 {
-	float val = 0.0;
-	bool ret = HandlingMgr::GetVehicleHandling((uint16_t)vehicleid, attrib, val);
-
-	cell *ref = NULL;
-	amx_GetAddr(amx, value, &ref);
-	if (!ref)
-		return false;
-	*ref = amx_ftoc(val);
-	return ret;
+    value = 0.0f;
+    return HandlingMgr::GetVehicleHandling((uint16_t)vehicleid, attrib, value);
 }
 
-SCRIPT_API(GetVehicleHandlingInt, bool(int vehicleid, CHandlingAttrib attrib, int &value))
+SCRIPT_API(GetVehicleHandlingInt, bool(int vehicleid, CHandlingAttrib attrib, unsigned int &value))
 {
+	value = 0;
 	bool ret = false;
-	cell *ref = NULL;
-	amx_GetAddr(amx, value, &ref);
-	if (!ref)
-		return false;
 
-	if (GetHandlingAttribType(attrib) == TYPE_BYTE)
-	{
-		uint8_t val = 0;
-		ret = HandlingMgr::GetVehicleHandling((uint16_t)vehicleid, attrib, val);
-		*ref = (cell)val;
-	}
+	if (GetHandlingAttributeType(attrib) == TYPE_BYTE)
+		ret = HandlingMgr::GetVehicleHandling((uint16_t)vehicleid, attrib, value);
 	else
-	{
-		unsigned int val = 0;
-		ret = HandlingMgr::GetVehicleHandling((uint16_t)vehicleid, attrib, val);
-		*ref = (cell)val;
-	}
+		ret = HandlingMgr::GetVehicleHandling((uint16_t)vehicleid, attrib, value);
 	return ret;
 }
 
 SCRIPT_API(GetModelHandlingFloat, bool(int modelid, CHandlingAttrib attrib, float &value))
 {
-	float val = 0.0;
-	bool ret = HandlingMgr::GetModelHandling((uint16_t)modelid, attrib, val);
-
-	cell *ref = NULL;
-	amx_GetAddr(amx, value, &ref);
-	if (!ref)
-		return false;
-	*ref = amx_ftoc(val);
-	return ret;
+	value = 0.0f;
+	return HandlingMgr::GetModelHandling((uint16_t)modelid, attrib, value);
 }
 
-SCRIPT_API(GetModelHandlingInt, bool(int modelid, CHandlingAttrib attrib, int &value))
+SCRIPT_API(GetModelHandlingInt, bool(int modelid, CHandlingAttrib attrib, unsigned int &value))
 {
+	value = 0;
 	bool ret = false;
-	cell *ref = NULL;
-	amx_GetAddr(amx, value, &ref);
-	if (!ref)
-		return false;
 
-	if (GetHandlingAttribType(attrib) == TYPE_BYTE)
-	{
-		uint8_t val = 0;
-		ret = HandlingMgr::GetModelHandling((uint16_t)modelid, attrib, val);
-		*ref = (cell)val;
-	}
+	if (GetHandlingAttributeType(attrib) == TYPE_BYTE)
+		ret = HandlingMgr::GetModelHandling((uint16_t)modelid, attrib, value);
 	else
-	{
-		unsigned int val = 0;
-		ret = HandlingMgr::GetModelHandling((uint16_t)modelid, attrib, val);
-
-		*ref = (cell)val;
-	}
+		ret = HandlingMgr::GetModelHandling((uint16_t)modelid, attrib, value);
 	return ret;
 }
 
 SCRIPT_API(GetDefaultHandlingFloat, bool(int modelid, CHandlingAttrib attrib, float &value))
 {
-	cell *ref = NULL;
-	amx_GetAddr(amx, value, &ref);
-	if (!ref)
-		return false;
-
-	float val = 0.0;
-	bool ret = HandlingMgr::GetDefaultHandling((uint16_t)modelid, attrib, val);
-
-	*ref = amx_ftoc(val);
-	return ret;
+	value = 0.0f;
+	return HandlingMgr::GetDefaultHandling((uint16_t)modelid, attrib, value);
 }
 
-SCRIPT_API(GetDefaultHandlingInt, bool(int modelid, CHandlingAttrib attrib, int &value))
+SCRIPT_API(GetDefaultHandlingInt, bool(int modelid, CHandlingAttrib attrib, unsigned int &value))
 {
 	bool ret = false;
-	cell *ref = NULL;
-	amx_GetAddr(amx, value, &ref);
-	if (!ref)
-		return false;
 
-	if (GetHandlingAttribType(attrib) == TYPE_BYTE)
-	{
-		uint8_t val = 0;
-		ret = HandlingMgr::GetModelHandling((uint16_t)modelid, attrib, val);
-		*ref = (cell)val;
-	}
+	if (GetHandlingAttributeType(attrib) == TYPE_BYTE)
+		ret = HandlingMgr::GetModelHandling((uint16_t)modelid, attrib, value);
 	else
-	{
-		unsigned int val = 0;
-		ret = HandlingMgr::GetModelHandling((uint16_t)modelid, attrib, val);
-		*ref = (cell)val;
-	}
+		ret = HandlingMgr::GetModelHandling((uint16_t)modelid, attrib, value);
 	return ret;
 }

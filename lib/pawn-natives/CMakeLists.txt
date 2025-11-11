@@ -13,7 +13,7 @@ if (NOT MAIN_RUN)
 
 		set(SAMPGDK_DIR "${CMAKE_CURRENT_SOURCE_DIR}/lib/sampgdk")
 		set(SAMPGDK_BUILD_DIR "${SAMPGDK_DIR}/build")
-		
+
 		if(NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/lib")
 			file(MAKE_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/lib")
         endif()
@@ -35,7 +35,7 @@ if (NOT MAIN_RUN)
 		file(MAKE_DIRECTORY "${SAMPGDK_BUILD_DIR}")
 
         if(NOT TARGET sampgdk)
-        	add_library(sampgdk 
+        	add_library(sampgdk
 					"${CMAKE_CURRENT_SOURCE_DIR}/lib/sampgdk/include/sampgdk/a_objects.h"
 					"${CMAKE_CURRENT_SOURCE_DIR}/lib/sampgdk/include/sampgdk/a_players.h"
 					"${CMAKE_CURRENT_SOURCE_DIR}/lib/sampgdk/include/sampgdk/a_samp.h"
@@ -74,18 +74,28 @@ if (NOT MAIN_RUN)
 			)
 		endif()
 
-		if(Win32)
-		    set(SAMPGDK_LINKER_DIR "${CMAKE_CURRENT_SOURCE_DIR}/src/sampgdk.def")
-            if(EXISTS "${SAMPGDK_LINKER_DIR}")
-                target_link_options(sampgdk PRIVATE "/DEF:\"${SAMPGDK_LINKER_DIR}\"")
-	    	    set_target_properties(sampgdk PROPERTIES LINK_DEPENDS "${SAMPGDK_LINKER_DIR}")
-			    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /DEF:\"${SAMPGDK_LINKER_DIR}\"")
-            endif()
-		    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /machine:${CMAKE_GENERATOR_PLATFORM}")
-		endif()
+    	if(MSVC)
+        	set(SAMPGDK_LINKER_DIR "${CMAKE_CURRENT_SOURCE_DIR}/lib/sampgdk/src/sampgdk.def")
+
+        	if(EXISTS "${SAMPGDK_LINKER_DIR}")
+			    message(STATUS "Applying linker tweaks for sampgdk...")
+            	file(TO_NATIVE_PATH "${SAMPGDK_LINKER_DIR}" SAMPGDK_LINKER_DIR_NATIVE)
+            	string(REPLACE "\\" "\\\\" SAMPGDK_LINKER_DIR_NATIVE "${SAMPGDK_LINKER_DIR_NATIVE}")
+            	set(SAMPGDK_DEF_FLAG "/DEF:\"${SAMPGDK_LINKER_DIR_NATIVE}\"")
+
+         	    set(CMAKE_MODULE_LINKER_FLAGS "${CMAKE_MODULE_LINKER_FLAGS} ${SAMPGDK_DEF_FLAG}")
+       	        set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} ${SAMPGDK_DEF_FLAG}")
+
+      	        target_link_options(sampgdk PRIVATE "${SAMPGDK_DEF_FLAG}")
+     	        set_target_properties(sampgdk PROPERTIES LINK_DEPENDS "${SAMPGDK_LINKER_DIR_NATIVE}")
+        	else()
+            	message(WARNING "sampgdk.def not found")
+        	endif()
+    		set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /machine:${CMAKE_GENERATOR_PLATFORM}")
+    	endif()
 
 		message(STATUS "Configuring sampgdk...")
-		if(Win32)	
+		if(Win32)
 			execute_process(
    				COMMAND ${CMAKE_COMMAND} -DCMAKE_POLICY_VERSION_MINIMUM=${CMAKE_POLICY_VERSION_MINIMUM} -DSAMP_SDK_ROOT=${PROJECT_SOURCE_DIR}/lib/amx -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} -B "${SAMPGDK_BUILD_DIR}" -A ${CMAKE_GENERATOR_PLATFORM} -DCMAKE_EXE_LINKER_FLAGS="${CMAKE_EXE_LINKER_FLAGS}"
   		    	WORKING_DIRECTORY "${SAMPGDK_DIR}"
@@ -133,7 +143,7 @@ else ()
 		target_compile_options(pawn-natives PRIVATE -m32)
 		target_link_options(pawn-natives PRIVATE -m32)
 		endif()
-        
+
 		if(NOT TARGET AMX)
 			file(GLOB AMX_SRC "${PROJECT_SOURCE_DIR}/lib/amx/*.c")
 			if(DEFINED UNIX)
@@ -152,7 +162,7 @@ else ()
 			target_include_directories(AMX
                 INTERFACE
                 $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/lib/amx>
-                $<INSTALL_INTERFACE:amx>
+                $<INSTALL_INTERFACE:amx>	
         	)
 		endif()
 
@@ -174,6 +184,3 @@ else ()
 				set(CMAKE_CXX_FLAGS "-std=gnu++0x")
 		endif ()
 endif ()
-
-
-

@@ -12,6 +12,8 @@ set(CMAKE_BINARY_DIR ${CMAKE_SOURCE_DIR}/bin)
 set(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR})
 set(LIBRARY_OUTPUT_PATH ${CMAKE_BINARY_DIR})
 
+set(CMAKE_CXX_STANDARD 17)
+
 add_subdirectory(${PROJECT_SOURCE_DIR}/lib/omp-sdk)
 add_subdirectory(${PROJECT_SOURCE_DIR}/lib/subhook)
 add_subdirectory(${PROJECT_SOURCE_DIR}/lib/pawn-natives)
