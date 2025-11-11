@@ -14,6 +14,7 @@ set(LIBRARY_OUTPUT_PATH ${CMAKE_BINARY_DIR})
 
 add_subdirectory(${PROJECT_SOURCE_DIR}/lib/omp-sdk)
 add_subdirectory(${PROJECT_SOURCE_DIR}/lib/subhook)
+add_subdirectory(${PROJECT_SOURCE_DIR}/lib/pawn-natives)
 
 file(GLOB AMX_SRC "${PROJECT_SOURCE_DIR}/lib/amx/*.c")
 if(DEFINED UNIX)
@@ -29,6 +30,11 @@ if(DEFINED UNIX)
 target_compile_options(AMX PRIVATE -m32)
 target_link_options(AMX PRIVATE -m32)
 endif()
+target_include_directories(AMX
+        INTERFACE
+        $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/lib/amx>
+        $<INSTALL_INTERFACE:amx>
+)
 
 file(GLOB RakNet_SRC "${PROJECT_SOURCE_DIR}/lib/RakNet/*.cpp")
 file(GLOB RakNetE_SRC "${PROJECT_SOURCE_DIR}/lib/RakNet/Encoding/*.cpp")
@@ -40,6 +46,11 @@ if(DEFINED UNIX)
 target_compile_options(RakNet PRIVATE -m32)
 target_link_options(RakNet PRIVATE -m32)
 endif()
+target_include_directories(RakNet
+        INTERFACE
+        $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/lib/RakNet>
+        $<INSTALL_INTERFACE:RakNet>
+)
 
 add_definitions(-DSUBHOOK_STATIC -DSUBHOOK_IMPLEMENTATION)
 add_definitions(-DHAVE_STDINT_H=1 -DPAWN_CELL_SIZE=64)

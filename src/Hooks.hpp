@@ -8,8 +8,8 @@
 #include <functional>
 #include <cstring>
 
-#include "../lib/subhook/subhook.h"
-#include "../lib/subhook/subhook_private.h"
+#include <subhook/subhook.h>
+#include <subhook/subhook_private.h>
 
 #include "../lib/omp-sdk/include/sdk.hpp"
 

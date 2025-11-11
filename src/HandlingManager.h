@@ -2,10 +2,10 @@
 #include "HandlingEnum.h"
 #include "HandlingStruct.h"
 
-#include "../lib/RakNet/bitstream.hpp"
-#include "../lib/omp-sdk/include/sdk.hpp"
-#include "../lib/omp-sdk/include/Server/Components/Pawn/pawn.hpp"
-#include "../lib/omp-sdk/include/Server/Components/Vehicles/vehicles.hpp"
+#include <RakNet/bitstream.hpp>
+#include <sdk.hpp>
+#include <Server/Components/Pawn/pawn.hpp>
+#include <Server/Components/Vehicles/vehicles.hpp>
 namespace HandlingMgr
 {
 	void ProcessTick();

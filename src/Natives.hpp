@@ -5,8 +5,9 @@
 #include "HandlingEnum.h"
 #include "HandlingManager.h"
 #include <cstring>
-#include "../lib/omp-sdk/include/sdk.hpp"
-#include "../lib/omp-sdk/include/Server/Components/Pawn/pawn.hpp"
+#include <sdk.hpp>
+#include <Server/Components/Pawn/pawn.hpp>
+#include <Server/Components/Pawn/Impl/pawn_natives.hpp>
 
 // Vehicle related funcs hooks
 using namespace NativeHook;

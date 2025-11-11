@@ -1,8 +1,8 @@
 #pragma once
 
-#include "../lib/RakNet/bitstream.hpp"
-#include "../lib/omp-sdk/include/sdk.hpp"
-#include "../lib/omp-sdk/include/Server/Components/Pawn/pawn.hpp"
+#include <RakNet/bitstream.hpp>
+#include <sdk.hpp>
+#include <Server/Components/Pawn/pawn.hpp>
 #include "PacketEnum.h"
 #include <cstdint>
 
