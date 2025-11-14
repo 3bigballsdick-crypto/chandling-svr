@@ -11,7 +11,7 @@
 #include <subhook/subhook.h>
 #include <subhook/subhook_private.h>
 
-#include "../lib/omp-sdk/include/sdk.hpp"
+#include <sdk.hpp>
 
 #include "chandlingsvr.h"
 
