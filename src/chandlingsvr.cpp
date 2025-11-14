@@ -10,6 +10,12 @@
 
 using namespace NativeHook;
 
+ICore *core_{};
+IPawnComponent *pawn_component_{};
+IVehiclesComponent *vehicles_ = nullptr;
+
+MarkedPoolStorage<int, IVehicle, 1, VEHICLE_POOL_SIZE> VehicleStorage;
+
 StringView CHandlingCompo::componentName() const
 {
 	return "CHandling";
@@ -35,14 +41,12 @@ IVehicle* CHandlingCompo::GetVehicleByID(int vehicleid)
 	if (!IS_VALID_VEHICLEID(vehicleid))
 		return nullptr;
 
-	IVehicle* it = nullptr;
-	for (it = vehicles_->begin(); it != vehicles_->end(); ++it)
+	for (IVehicle *vehicle : VehicleStorage)
 	{
-		IVehicle &vehicle = *it;
-		if (vehicle.getID() == vehicleid)
-		{
-			return &vehicle;
-		}
+		if (!vehicle)
+			continue;
+		if (vehicle->getID() == vehicleid)
+			return vehicle;
 	}
 	return nullptr;
 }
@@ -52,14 +56,12 @@ bool CHandlingCompo::IsValidVehicle(int vehicleid)
 	if (!IS_VALID_VEHICLEID(vehicleid))
 		return false;
 
-	IVehicle *it = nullptr;
-	for (it = vehicles_->begin(); it != vehicles_->end(); ++it)
+	for (IVehicle *vehicle : VehicleStorage)
 	{
-		IVehicle &vehicle = *it;
-		if (vehicle.getID() == vehicleid)
-		{
+		if (!vehicle)
+			continue;
+		if (vehicle->getID() == vehicleid)
 			return true;
-		}
 	}
 	return false;
 }
@@ -172,27 +174,11 @@ bool CHandlingCompo::onReceivePacket(IPlayer &peer, int id, NetworkBitStream &bs
 void CHandlingCompo::onFree(IComponent *component)
 {
 	if (component == pawn_component_)
-	{
-		if (pawn_component_)
-		{
-			pawn_component_->getEventDispatcher().removeEventHandler(this);
-		}
-
 		pawn_component_ = nullptr;
-	}
 	else if (component == vehicles_)
-	{
-		if (vehicles_)
-		{
-			vehicles_->getEventDispatcher().removeEventHandler(this);
-		}
-
 		vehicles_ = nullptr;
-	}
 	else if (component == this)
-	{
 		core_->getEventDispatcher().removeEventHandler(this);
-	}
 }
 
 void CHandlingCompo::reset() {}
@@ -218,7 +204,7 @@ CHandlingCompo *&CHandlingCompo::get()
 
 COMPONENT_ENTRY_POINT()
 {
-	return new CHandlingCompo();
+	return (IComponent*)CHandlingCompo::get();
 }
 
 void CHandlingCompo::onIncomingConnection(IPlayer& player, StringView ipAddress, unsigned short port)

@@ -4,9 +4,14 @@
 #include <sdk.hpp>
 #include <Server/Components/Pawn/pawn.hpp>
 #include <Impl/network_impl.hpp>
+#include <Impl/pool_impl.hpp>
+#include <Server/Components/Vehicles/vehicle_components.hpp>
 #include <Server/Components/Vehicles/vehicles.hpp>
 
 #include <RakNet/bitstream.hpp>
+
+#include <vector>
+#include <algorithm>
 
 #define CHANDLING_PHASE_DEV true
 #define CHANDLING_VERSION_MAJOR 1
@@ -39,6 +44,8 @@
 #define IS_VALID_PLAYERID(playerid) \
 	(playerid >= 1 && playerid <= MAX_PLAYERS)
 
+using namespace Impl;
+
 class CHandlingCompo final : public IComponent,
 							 public PawnEventHandler,
 							 public CoreEventHandler,
@@ -46,7 +53,8 @@ class CHandlingCompo final : public IComponent,
 							 public NetworkOutEventHandler,
 							 public PoolEventHandler<IVehicle>,
 							 public PlayerConnectEventHandler,
-							 public VehicleEventHandler
+							 public VehicleEventHandler,
+							 public PoolIDProvider
 {
 public:
 	PROVIDE_UID(0xFBE076EB9EA67E4C);
@@ -79,7 +87,7 @@ public:
 
 	void onPlayerDisconnect(IPlayer& player, PeerDisconnectReason reason) override;
 
-	void onVehicleStreamIn(IVehicle& vehicle, IPlayer& player) override;
+	void onVehicleStreamIn(IVehicle& vehicle, IPlayer& player);
 
 	static ICore *&getCore();
 
@@ -95,6 +103,7 @@ private:
 	IVehiclesComponent *vehicles_ = nullptr;
 
 public:
+	static std::vector<IVehicle*> VehicleStorage;
 	void **AMX_EXPORTS_DTA = nullptr;
 };
 #endif

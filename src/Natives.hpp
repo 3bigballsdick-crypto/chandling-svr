@@ -4,6 +4,7 @@
 #include "Hooks.hpp"
 #include "HandlingEnum.h"
 #include "HandlingManager.h"
+#include "chandlingsvr.h"
 #include <cstring>
 #include <sdk.hpp>
 #include <Server/Components/Pawn/pawn.hpp>
@@ -25,6 +26,7 @@ void RegisterNativeHooks()
 		core_->logLn(LogLevel::Debug, "[CHandling] Hooked CreateVehicle");
 		int vehicleid = orig(amx, params);
 		HandlingMgr::OnCreateVehicle(vehicleid);
+		CHandlingCompo::VehicleStorage.push_back(vehicleid);
 		return static_cast<cell>(vehicleid);
 	});
 
@@ -38,6 +40,7 @@ void RegisterNativeHooks()
 		core_->logLn(LogLevel::Debug, "[CHandling] Hooked AddStaticVehicle");
 		int vehicleid = orig(amx, params);
 		HandlingMgr::OnCreateVehicle(vehicleid);
+		CHandlingCompo::VehicleStorage.push_back(vehicleid);
 		return static_cast<cell>(vehicleid);
 	});
 
@@ -51,14 +54,32 @@ void RegisterNativeHooks()
 		core_->logLn(LogLevel::Debug, "[CHandling] Hooked AddStaticVehicleEx");
 		int vehicleid = orig(amx, params);
 		HandlingMgr::OnCreateVehicle(vehicleid);
+		CHandlingCompo::VehicleStorage.push_back(vehicleid);
 		return static_cast<cell>(vehicleid);
+	});
+
+	NativeHookManager::Instance().RegisterHookByName("DestroyVehicle", [](AMX *amx, cell *params, NativeHook::amx_native_fn_t orig) -> cell
+	{
+		auto core_ = CHandlingCompo::getCore();
+		if (!core_)
+		{
+			return static_cast<cell>(INVALID_VEHICLE_ID);
+		}
+		core_->logLn(LogLevel::Debug, "[CHandling] Hooked DestroyVehicle");
+		int ret = orig(amx, params);
+		int vehicleid = params[1];
+		//HandlingMgr::OnDestroyVehicle(vehicleid);
+		CHandlingCompo::VehicleStorage.erase(std::remove(CHandlingCompo::VehicleStorage.begin(), CHandlingCompo::VehicleStorage.end(), vehicleid), CHandlingCompo::VehicleStorage.end());
+		return static_cast<cell>(ret);
 	});
 }
 
 // Vehicle handling related funcs
-SCRIPT_API(GetHandlingAttributeType, CHandlingAttributeType(CHandlingAttrib attr))
+SCRIPT_API(GetHandlingAttribType, cell(int attr))
 {
-	return GetHandlingAttributeType(attr);
+	CHandlingAttrib handlingAttr = static_cast<CHandlingAttrib>(attr);
+	CHandlingAttribType type = GetHandlingAttributeType(handlingAttr);
+	return static_cast<cell>(type);
 }
 
 SCRIPT_API(IsPlayerUsingCHandling, bool(IPlayer &player))
