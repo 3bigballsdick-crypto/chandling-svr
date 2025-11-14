@@ -90,8 +90,13 @@ namespace NativeHook
 				subhook_t hook = subhook_new(reinterpret_cast<void *>(orig), reinterpret_cast<void *>(HookTrampoline), {});
 				subhook_install(hook);
 
-				activeHooks_[key] = {index, amx, hook, orig};
-				core_->logLn(LogLevel::Debug, "[CHandling] Hook installed: %s at index %d", hookData.nativeName.c_str(), index);
+				if(!subhook_is_installed(hook))
+					core_->logLn(LogLevel::Error, "[CHandling] Failed to install Hook: %s at index %d", hookData.nativeName.c_str(), index);
+				else
+				{
+					activeHooks_[key] = {index, amx, hook, orig};
+					core_->logLn(LogLevel::Debug, "[CHandling] Hook installed: %s at index %d", hookData.nativeName.c_str(), index);
+				}
 			}
 		}
 
