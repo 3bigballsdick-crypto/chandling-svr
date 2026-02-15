@@ -45,8 +45,6 @@ jobs:
           submodules: recursive
           fetch-depth: 0
 
-      # Use Ninja instead of Visual Studio generator
-      # This avoids the -A platform propagation issue inside sampgdk
       - name: Setup Ninja
         run: choco install ninja
 
